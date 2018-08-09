@@ -61,23 +61,20 @@ func handleShutdownErrs(s *Server, listenErr chan error, shutdown chan struct{})
 	shutdownErr := make(chan error, 1)
 
 	// Before shutdown request is received:
-beforeShutdown:
-	for {
-		select {
-		case err := <-listenErr:
-			// We haven't received a shutdown request so far,
-			// immediately return any error fromm ListenAndServe
-			return err
+	select {
+	case err := <-listenErr:
+		// We haven't received a shutdown request so far,
+		// immediately return any error fromm ListenAndServe
+		return err
 
-		case <-shutdown:
-			// Shutdown request received
-			go func() {
-				shutdownErr <- s.ShutdownWithTimeout(
-					context.Background(),
-					DefaultShutdownTimeout)
-			}()
-			break beforeShutdown
-		}
+	case <-shutdown:
+		// Shutdown request received
+		go func() {
+			shutdownErr <- s.ShutdownWithTimeout(
+				context.Background(),
+				DefaultShutdownTimeout)
+		}()
+		break
 	}
 
 	// After shutdown request was received:
